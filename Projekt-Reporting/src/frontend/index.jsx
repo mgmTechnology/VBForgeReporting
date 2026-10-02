@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ForgeReconciler, { Text } from '@forge/react';
+import ForgeReconciler, { Text, Heading } from '@forge/react';
 import { invoke } from '@forge/bridge';
 
 const App = () => {
@@ -10,7 +10,8 @@ const App = () => {
 
   return (
     <>
-      <Text>Hello world!</Text>
+    <Heading>Erster Test</Heading>
+      
       <Text>{data ? data : 'Loading...'}</Text>
     </>
   );
