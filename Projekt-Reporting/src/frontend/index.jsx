@@ -1,21 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import ForgeReconciler, { Text, Heading } from '@forge/react';
-import { invoke } from '@forge/bridge';
+import React from 'react';
+import ForgeReconciler, { Heading, Stack } from '@forge/react';
+import { VacationPlanner } from './components/VacationPlanner';
 
-const App = () => {
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    invoke('getText', { example: 'my-invoke-variable' }).then(setData);
-  }, []);
-
-  return (
-    <>
-    <Heading>Erster Test</Heading>
-      
-      <Text>{data ? data : 'Loading...'}</Text>
-    </>
-  );
-};
+/**
+ * Einstiegspunkt der Global Page: Urlaubsplanung für selbst definierte Teams.
+ */
+const App = () => (
+  <Stack space="space.200" testId="app-root">
+    <Heading size="large" testId="app-heading">Urlaubsplanung</Heading>
+    <VacationPlanner />
+  </Stack>
+);
 
 ForgeReconciler.render(
   <React.StrictMode>

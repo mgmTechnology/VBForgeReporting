@@ -9,6 +9,20 @@ modules:
   function:
     - key: resolver
       handler: index.handler
+    - key: privacy-report
+      handler: index.privacyHandler
+  # Wöchentliche Meldung gespeicherter accountIds (Atlassian User Privacy)
+  scheduledTrigger:
+    - key: privacy-report-trigger
+      function: privacy-report
+      interval: week
+  # Forge SQL Datenbank für Teams und Urlaube
+  sql:
+    - key: main
+      engine: mysql
+permissions:
+  scopes:
+    - report:personal-data
 resources:
   - key: main
     path: src/frontend/index.jsx
