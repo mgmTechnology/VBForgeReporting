@@ -4,7 +4,8 @@ import { api } from '../services/apiClient';
 
 /**
  * Lädt die Grunddaten der Urlaubsplanung (eigene Teams, eigene kommende
- * Urlaube, accountId des Aufrufers) und stellt die Schreibaktionen bereit.
+ * Urlaube, vom Aufrufer zu genehmigende Anträge, accountId des Aufrufers)
+ * und stellt die Schreibaktionen bereit.
  *
  * Schreibaktionen werfen bei Fehlern – die aufrufende Komponente (z. B. ein
  * Modal) zeigt die Meldung an. Nach jeder erfolgreichen Änderung werden die
@@ -14,13 +15,17 @@ import { api } from '../services/apiClient';
  * @returns {object} Zustand und Aktionen
  */
 export const usePlannerData = () => {
-  const [state, setState] = useState({ loading: true, error: null, teams: [], myVacations: [], accountId: null });
+  const [state, setState] = useState({
+    loading: true, error: null, teams: [], myVacations: [], pendingApprovals: [], accountId: null,
+  });
   const [version, setVersion] = useState(0);
 
   const reload = useCallback(async () => {
     try {
-      const [context, teams, myVacations] = await Promise.all([view.getContext(), api.getMyTeams(), api.getMyVacations()]);
-      setState({ loading: false, error: null, teams, myVacations, accountId: context.accountId });
+      const [context, teams, myVacations, pendingApprovals] = await Promise.all([
+        view.getContext(), api.getMyTeams(), api.getMyVacations(), api.getPendingApprovals(),
+      ]);
+      setState({ loading: false, error: null, teams, myVacations, pendingApprovals, accountId: context.accountId });
     } catch (error) {
       setState((previous) => ({ ...previous, loading: false, error: error.message }));
     }
@@ -40,6 +45,7 @@ export const usePlannerData = () => {
     version,
     saveVacation: (vacation) => mutate(() => (vacation.id ? api.updateVacation(vacation) : api.createVacation(vacation))),
     deleteVacation: (vacationId) => mutate(() => api.deleteVacation(vacationId)),
+    decideVacation: (vacationId, decision, comment) => mutate(() => api.decideVacation(vacationId, decision, comment)),
     saveTeam: (team) => mutate(() => (team.id ? api.updateTeam(team) : api.createTeam(team))),
     deleteTeam: (teamId) => mutate(() => api.deleteTeam(teamId)),
   };

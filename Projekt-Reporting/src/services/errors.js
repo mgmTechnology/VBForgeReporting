@@ -5,7 +5,7 @@
  */
 export class AppError extends Error {
   /**
-   * @param {'VALIDATION'|'FORBIDDEN'|'NOT_FOUND'} code Maschinenlesbarer Fehlercode
+   * @param {'VALIDATION'|'FORBIDDEN'|'NOT_FOUND'|'JIRA'} code Maschinenlesbarer Fehlercode
    * @param {string} message Für Anwender verständliche Meldung (deutsch)
    */
   constructor(code, message) {
@@ -35,3 +35,12 @@ export const forbiddenError = (message) => new AppError('FORBIDDEN', message);
  * @returns {AppError}
  */
 export const notFoundError = (message) => new AppError('NOT_FOUND', message);
+
+/**
+ * Jira hat eine Anfrage abgelehnt (z. B. fehlende Projektberechtigung oder
+ * Genehmiger ist im Projekt nicht zuweisbar). Die Meldung enthält Jiras
+ * eigene Begründung, damit Anwender bzw. Admins die Ursache beheben können.
+ * @param {string} message
+ * @returns {AppError}
+ */
+export const jiraError = (message) => new AppError('JIRA', message);

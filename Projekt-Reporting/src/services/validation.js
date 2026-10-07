@@ -96,3 +96,15 @@ export const requireAccountIds = (value) => {
   if (unique.length > MAX_TEAM_MEMBERS) throw validationError(`Ein Team darf höchstens ${MAX_TEAM_MEMBERS} Mitglieder haben.`);
   return unique;
 };
+
+/**
+ * Prüft eine einzelne Pflicht-accountId (z. B. die genehmigende Person).
+ * @param {unknown} value
+ * @param {string} label Bezeichnung für die Fehlermeldung
+ * @returns {string}
+ */
+export const requireAccountId = (value, label) => {
+  if (typeof value !== 'string' || value === '') throw validationError(`Bitte ${label} auswählen.`);
+  if (!ACCOUNT_ID_PATTERN.test(value)) throw validationError(`Die Auswahl für ${label} ist ungültig.`);
+  return value;
+};

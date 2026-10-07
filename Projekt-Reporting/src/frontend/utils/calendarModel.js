@@ -1,4 +1,5 @@
 import { countWorkdays, overlaps } from './dateUtils';
+import { STATUS_PENDING } from './vacationStatus';
 
 /** Ab diesem Anteil abwesender Mitglieder wird eine Woche als Engpass markiert. */
 export const OVERLAP_THRESHOLD = 0.5;
@@ -18,6 +19,17 @@ export const getAbsenceDays = (accountId, week, vacations) => vacations
     const to = vacation.endDate < week.to ? vacation.endDate : week.to;
     return days + countWorkdays(from, to);
   }, 0);
+
+/**
+ * Prüft, ob ein Mitglied in einer Woche einen noch nicht genehmigten Urlaub hat.
+ * Abgelehnte Urlaube liefert das Backend für den Teamkalender gar nicht erst.
+ * @param {string} accountId
+ * @param {{from: string, to: string}} week
+ * @param {Array<object>} vacations Urlaube des Teams
+ * @returns {boolean}
+ */
+export const hasPendingVacation = (accountId, week, vacations) => vacations.some((vacation) =>
+  vacation.accountId === accountId && vacation.status === STATUS_PENDING && overlaps(vacation, week.from, week.to));
 
 /**
  * Liefert die accountIds der Mitglieder, die in einer Woche mindestens einen Tag fehlen.
