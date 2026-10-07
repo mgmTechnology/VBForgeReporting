@@ -1,9 +1,11 @@
+import { NeedsAuthenticationError } from '@forge/api';
 import Resolver from '@forge/resolver';
 import { ensureSchema } from '../services/db/schema';
 import { AppError, forbiddenError } from '../services/errors';
 import { createTeam, deleteTeam, listTeamsForUser, updateTeam } from '../services/teamService';
 import {
-  createVacation, deleteVacation, listTeamVacations, listUpcomingVacations, updateVacation,
+  createVacation, decideVacation, deleteVacation, listPendingApprovals, listTeamVacations, listUpcomingVacations,
+  updateVacation,
 } from '../services/vacationService';
 
 /*
@@ -48,6 +50,9 @@ const defineAction = (name, action) => {
       await ensureSchema();
       return { ok: true, data: await action(context.accountId, payload ?? {}) };
     } catch (error) {
+      // Fehlende Zustimmung für Jira-Aufrufe im Namen des Users (asUser) muss an
+      // Forge durchgereicht werden, damit der Zustimmungsdialog erscheint.
+      if (error instanceof NeedsAuthenticationError) throw error;
       return toErrorResponse(name, error);
     }
   });
@@ -63,5 +68,8 @@ defineAction('getTeamVacations', listTeamVacations);
 defineAction('createVacation', createVacation);
 defineAction('updateVacation', updateVacation);
 defineAction('deleteVacation', deleteVacation);
+
+defineAction('getPendingApprovals', (accountId) => listPendingApprovals(accountId));
+defineAction('decideVacation', decideVacation);
 
 export const handler = resolver.getDefinitions();

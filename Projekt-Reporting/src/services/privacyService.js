@@ -14,6 +14,8 @@ const SELECT_STORED_ACCOUNTS = `
          DATE_FORMAT(MAX(changed_at), '%Y-%m-%dT%H:%i:%s.000Z') AS updatedAt
   FROM (
     SELECT account_id, updated_at AS changed_at FROM vacation
+    UNION ALL SELECT approver_account_id AS account_id, updated_at AS changed_at FROM vacation
+      WHERE approver_account_id IS NOT NULL
     UNION ALL SELECT account_id, created_at AS changed_at FROM team_member
     UNION ALL SELECT owner_account_id AS account_id, updated_at AS changed_at FROM team
   ) AS stored_accounts
@@ -22,11 +24,14 @@ const SELECT_STORED_ACCOUNTS = `
 /**
  * Löscht alle Daten eines geschlossenen Accounts: seine Urlaube, seine
  * Mitgliedschaften und die Teams, deren Owner er war (inkl. Mitgliedschaften).
+ * Bei fremden Urlauben, die er genehmigen sollte, wird nur der Verweis auf ihn
+ * entfernt; der Antragsteller kann beim Bearbeiten eine neue Person wählen.
  * @param {string} accountId
  * @returns {Promise<void>}
  */
 const eraseAccount = async (accountId) => {
   await execute('DELETE FROM vacation WHERE account_id = ?', accountId);
+  await execute('UPDATE vacation SET approver_account_id = NULL WHERE approver_account_id = ?', accountId);
   await execute('DELETE FROM team_member WHERE team_id IN (SELECT id FROM team WHERE owner_account_id = ?)', accountId);
   await execute('DELETE FROM team WHERE owner_account_id = ?', accountId);
   await execute('DELETE FROM team_member WHERE account_id = ?', accountId);

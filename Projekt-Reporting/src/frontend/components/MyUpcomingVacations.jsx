@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Button, ButtonGroup, Heading, Inline, Stack, Text, xcss } from '@forge/react';
+import { Box, Button, ButtonGroup, Heading, Inline, Lozenge, Stack, Text, User, xcss } from '@forge/react';
 import { countWorkdays, formatRange } from '../utils/dateUtils';
+import { getStatusDisplay } from '../utils/vacationStatus';
 
 /** Karten-Optik für einen einzelnen Urlaub. */
 const cardStyle = xcss({
@@ -12,7 +13,27 @@ const cardStyle = xcss({
 });
 
 /**
- * Eine Karte für einen eigenen Urlaub mit Bearbeiten/Löschen.
+ * Genehmigungsstand eines Antrags: Status, genehmigende Person, ggf. Begründung.
+ * @param {object} props
+ * @param {object} props.vacation
+ */
+const ApprovalInfo = ({ vacation }) => {
+  const { label, appearance } = getStatusDisplay(vacation.status);
+  return (
+    <Stack space="space.050" testId={`my-vacation-${vacation.id}-approval`}>
+      <Inline space="space.100" alignBlock="center" testId={`my-vacation-${vacation.id}-status`}>
+        <Lozenge appearance={appearance}>{label}</Lozenge>
+        {vacation.approverAccountId && <Text>durch</Text>}
+        {vacation.approverAccountId && <User accountId={vacation.approverAccountId} />}
+        {vacation.jiraIssueKey && <Text>· {vacation.jiraIssueKey}</Text>}
+      </Inline>
+      {vacation.decisionComment && <Text>Begründung: {vacation.decisionComment}</Text>}
+    </Stack>
+  );
+};
+
+/**
+ * Eine Karte für einen eigenen Urlaub mit Genehmigungsstand und Bearbeiten/Löschen.
  * @param {object} props
  * @param {object} props.vacation
  * @param {(vacation: object) => void} props.onEdit
@@ -24,6 +45,7 @@ const VacationCard = ({ vacation, onEdit, onDelete }) => (
       <Stack space="space.050" testId={`my-vacation-${vacation.id}-info`}>
         <Text>{formatRange(vacation.startDate, vacation.endDate)} · {countWorkdays(vacation.startDate, vacation.endDate)} Arbeitstage</Text>
         {vacation.comment && <Text>{vacation.comment}</Text>}
+        <ApprovalInfo vacation={vacation} />
       </Stack>
       <ButtonGroup testId={`my-vacation-${vacation.id}-actions`}>
         <Button spacing="compact" onClick={() => onEdit(vacation)} testId={`my-vacation-${vacation.id}-edit`}>Bearbeiten</Button>

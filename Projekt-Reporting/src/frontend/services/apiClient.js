@@ -30,4 +30,6 @@ export const api = {
   createVacation: (vacation) => callResolver('createVacation', vacation),
   updateVacation: (vacation) => callResolver('updateVacation', vacation),
   deleteVacation: (vacationId) => callResolver('deleteVacation', { id: vacationId }),
+  getPendingApprovals: () => callResolver('getPendingApprovals'),
+  decideVacation: (vacationId, decision, comment) => callResolver('decideVacation', { id: vacationId, decision, comment }),
 };

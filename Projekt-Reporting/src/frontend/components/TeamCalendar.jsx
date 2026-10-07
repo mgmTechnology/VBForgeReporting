@@ -1,7 +1,7 @@
 import React from 'react';
 import { DynamicTable, Inline, Lozenge, Strong, Text, User } from '@forge/react';
 import { formatDate } from '../utils/dateUtils';
-import { getAbsenceDays, getAbsentMembers } from '../utils/calendarModel';
+import { getAbsenceDays, getAbsentMembers, hasPendingVacation } from '../utils/calendarModel';
 
 /**
  * Tabellenkopf: erste Spalte Mitglied, danach eine Spalte je Kalenderwoche.
@@ -20,6 +20,7 @@ const buildHead = (weeks) => ({
 
 /**
  * Zelle für ein Mitglied in einer Woche: Lozenge mit Anzahl Urlaubstage.
+ * Grün = alles genehmigt, gelb = mindestens ein Urlaub ist noch beantragt.
  * @param {string} accountId
  * @param {object} week
  * @param {Array<object>} vacations
@@ -28,9 +29,10 @@ const renderAbsenceCell = (accountId, week, vacations) => {
   const days = getAbsenceDays(accountId, week, vacations);
   const testId = `calendar-${accountId}-${week.from}`;
   if (days === 0) return <Text testId={testId}>·</Text>;
+  const pending = hasPendingVacation(accountId, week, vacations);
   return (
-    <Lozenge appearance="success" isBold={days === 5} testId={testId}>
-      {days === 5 ? 'ganze Woche' : `${days} ${days === 1 ? 'Tag' : 'Tage'}`}
+    <Lozenge appearance={pending ? 'moved' : 'success'} isBold={days === 5} testId={testId}>
+      {days === 5 ? 'ganze Woche' : `${days} ${days === 1 ? 'Tag' : 'Tage'}`}{pending ? ' (beantragt)' : ''}
     </Lozenge>
   );
 };

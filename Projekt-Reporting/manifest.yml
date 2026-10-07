@@ -23,6 +23,9 @@ modules:
 permissions:
   scopes:
     - report:personal-data
+    # Genehmigungs-Issues lesen (Transitions) und anlegen/kommentieren/zuweisen
+    - read:jira-work
+    - write:jira-work
 resources:
   - key: main
     path: src/frontend/index.jsx

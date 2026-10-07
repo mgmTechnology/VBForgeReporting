@@ -5,8 +5,10 @@ import { getCriticalWeeks } from '../utils/calendarModel';
 import { usePlannerData } from '../hooks/usePlannerData';
 import { useTeamVacations } from '../hooks/useTeamVacations';
 import { ConfirmModal } from './ConfirmModal';
+import { DecisionModal } from './DecisionModal';
 import { MyUpcomingVacations } from './MyUpcomingVacations';
 import { OverlapWarnings } from './OverlapWarnings';
+import { PendingApprovals } from './PendingApprovals';
 import { PlannerToolbar } from './PlannerToolbar';
 import { TeamCalendar } from './TeamCalendar';
 import { TeamFormModal } from './TeamFormModal';
@@ -43,10 +45,17 @@ const TeamArea = ({ team, currentAccountId, weeks, version }) => {
  * Alle Modals der Seite. Zustand: undefined = geschlossen, null = neu, Objekt = bearbeiten.
  * @param {object} props
  */
-const PlannerModals = ({ data, editingVacation, setEditingVacation, deletingVacation, setDeletingVacation, editingTeam, setEditingTeam }) => (
+const PlannerModals = ({
+  data, editingVacation, setEditingVacation, deletingVacation, setDeletingVacation, editingTeam, setEditingTeam,
+  decidingVacation, setDecidingVacation,
+}) => (
   <ModalTransition>
     {editingVacation !== undefined && (
-      <VacationFormModal vacation={editingVacation} onSave={data.saveVacation} onClose={() => setEditingVacation(undefined)} />
+      <VacationFormModal vacation={editingVacation} currentAccountId={data.accountId} onSave={data.saveVacation}
+        onClose={() => setEditingVacation(undefined)} />
+    )}
+    {decidingVacation && (
+      <DecisionModal vacation={decidingVacation} onDecide={data.decideVacation} onClose={() => setDecidingVacation(null)} />
     )}
     {deletingVacation && (
       <ConfirmModal idPrefix="vacation-delete" title="Urlaub löschen?" confirmLabel="Löschen"
@@ -61,8 +70,9 @@ const PlannerModals = ({ data, editingVacation, setEditingVacation, deletingVaca
 );
 
 /**
- * Hauptseite der Urlaubsplanung (Team-Kalender): oben das gewählte Team als
- * Wochenmatrix mit Engpass-Warnungen, darunter die eigenen Urlaube.
+ * Hauptseite der Urlaubsplanung (Team-Kalender): ganz oben ggf. die Anträge,
+ * die der User genehmigen soll, dann das gewählte Team als Wochenmatrix mit
+ * Engpass-Warnungen, darunter die eigenen Urlaube.
  */
 export const VacationPlanner = () => {
   const data = usePlannerData();
@@ -71,6 +81,7 @@ export const VacationPlanner = () => {
   const [editingVacation, setEditingVacation] = useState(undefined);
   const [deletingVacation, setDeletingVacation] = useState(null);
   const [editingTeam, setEditingTeam] = useState(undefined);
+  const [decidingVacation, setDecidingVacation] = useState(null);
 
   if (data.loading) return <Spinner label="Lade Urlaubsplanung" testId="planner-loading" />;
   if (data.error) return <SectionMessage appearance="error" title="Laden fehlgeschlagen" testId="planner-error"><Text>{data.error}</Text></SectionMessage>;
@@ -81,6 +92,7 @@ export const VacationPlanner = () => {
 
   return (
     <Stack space="space.300" testId="planner-root">
+      {data.pendingApprovals.length > 0 && <PendingApprovals vacations={data.pendingApprovals} onDecide={setDecidingVacation} />}
       <PlannerToolbar teams={data.teams} team={team} onSelectTeam={setSelectedTeamId} period={period}
         onShiftMonth={(delta) => setPeriod(shiftMonth(period, delta))} onAddVacation={() => setEditingVacation(null)}
         onEditTeam={setEditingTeam} onNewTeam={() => setEditingTeam(null)} />
@@ -90,7 +102,8 @@ export const VacationPlanner = () => {
       <MyUpcomingVacations vacations={data.myVacations} onEdit={setEditingVacation} onDelete={setDeletingVacation} />
       <PlannerModals data={data} editingVacation={editingVacation} setEditingVacation={setEditingVacation}
         deletingVacation={deletingVacation} setDeletingVacation={setDeletingVacation}
-        editingTeam={editingTeam} setEditingTeam={setEditingTeam} />
+        editingTeam={editingTeam} setEditingTeam={setEditingTeam}
+        decidingVacation={decidingVacation} setDecidingVacation={setDecidingVacation} />
     </Stack>
   );
 };
